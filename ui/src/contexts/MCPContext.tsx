@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { MCPServer, MCPTool } from '../types/mcp'
-import { mcpClient } from '../services/mcpClient'
+import { mcpClient, UiResourceData } from '../services/mcpClient'
 
 interface MCPState {
   servers: MCPServer[]
@@ -20,14 +20,17 @@ type MCPAction =
   | { type: 'CLEAR_NOTIFICATIONS'; payload?: string }
 
 const initialState: MCPState = {
-  servers: [
-    {
-      id: '1',
-      name: 'Countdown Server',
-      domain: 'localhost:6001',
-      status: 'disconnected'
-    }
-  ],
+  servers: [{
+    id: '1',
+    name: 'Countdown Server',
+    domain: 'localhost:6001',
+    status: 'disconnected'
+  }, {
+    id: '2',
+    name: 'Basic React',
+    domain: 'localhost:3001',
+    status: 'disconnected'
+  }],
   notifications: [],
   progress: []
 }
@@ -125,6 +128,7 @@ interface MCPContextType {
     fetchServerTools: (id: string) => Promise<void>
     callTool: (serverId: string, toolName: string, args: Record<string, any>) => Promise<any>
     clearNotifications: (serverId?: string) => void
+    getUiResource: (serverId: string, uri: string) => Promise<UiResourceData>
   }
 }
 
@@ -207,6 +211,10 @@ export function MCPProvider({ children }: { children: ReactNode }) {
 
     clearNotifications: (serverId?: string) => {
       dispatch({ type: 'CLEAR_NOTIFICATIONS', payload: serverId })
+    },
+
+    getUiResource: async (serverId: string, uri: string): Promise<UiResourceData> => {
+      return await mcpClient.getUiResource(serverId, uri)
     }
   }
 

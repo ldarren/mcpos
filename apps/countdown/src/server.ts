@@ -1,12 +1,17 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto"
+import fs from "node:fs/promises"
+import path from "node:path"
 import { Request, Response } from "express"
-import { McpServer, ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { CallToolResult, Notification, CallToolRequestSchema, ListToolsRequestSchema, LoggingMessageNotification, ToolListChangedNotification, JSONRPCNotification, JSONRPCError, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { McpServer, ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js"
+import { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY, McpUiAppResourceConfig } from "@modelcontextprotocol/ext-apps/server"
+import { CallToolResult, Notification, CallToolRequestSchema, ListToolsRequestSchema, LoggingMessageNotification, ToolListChangedNotification, JSONRPCNotification, JSONRPCErrorResponse, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import * as z from 'zod/v4'
 
 const SESSION_ID_HEADER_NAME = "mcp-session-id"
 const JSON_RPC = "2.0"
+// Two-part registration: tool + resource
+const resourceUri = "ui://get-time/mcp-app.html"
 
 async function sendNotificationByTransport(transport: StreamableHTTPServerTransport, notification: Notification) {
     const rpcNotificaiton: JSONRPCNotification = {
@@ -16,7 +21,7 @@ async function sendNotificationByTransport(transport: StreamableHTTPServerTransp
     await transport.send(rpcNotificaiton)
 }
 
-function createErrorResponse(message: string, code = -32000): JSONRPCError {
+function createErrorResponse(message: string, code = -32000): JSONRPCErrorResponse {
     return {
         jsonrpc: JSON_RPC,
         id: randomUUID(),
@@ -95,12 +100,14 @@ const multiGreetCB: ToolCallback<typeof singleGreetTool.inputSchema> = async ({n
 const countdownTool = {
 	title: 'countdown',
 	description: "Start a countdown from a specified number, streaming each second",
-	inputSchema: z.object({
+	inputSchema: {
 		start: z.number().min(1).max(3600).describe("Starting number for countdown (1-3600 seconds)")
-	}) as z.ZodObject<{ start: z.ZodNumber }>,
+	},
+	outputSchema: z.object({current: z.number()}),
+	_meta: { [RESOURCE_URI_META_KEY]: resourceUri },
 }
 
-const countdownCB: ToolCallback<typeof countdownTool.inputSchema> = async ({start}: any, extra): Promise<CallToolResult> => {
+const countdownCB: ToolCallback<z.ZodRawShape> = async ({start}: any, extra): Promise<CallToolResult> => {
 	const sessionId = extra.sessionId
 	if (!sessionId) {
 		throw new Error("Session ID is required for countdown tool.")
@@ -146,7 +153,8 @@ const countdownCB: ToolCallback<typeof countdownTool.inputSchema> = async ({star
 		content: [{
 			type: "text",
 			text: `Start Counting down from ${start} seconds! (ID: ${id})`
-		}]
+		}],
+		structuredContent: { current },
 	}
 }
 
@@ -174,7 +182,8 @@ server.registerTool(
 	multiGreetCB
 )
 
-server.registerTool(
+registerAppTool(
+	server,
 	'countdown',
 	countdownTool,
 	countdownCB
@@ -256,7 +265,46 @@ export async function handlePostRequest(req: Request, res: Response) {
 	}
 }
 
+// Handle DELETE requests for session termination (according to MCP spec)
+export async function handleDeleteRequest (req: Request, res: Response) {
+	const sessionId = req.headers['mcp-session-id'] as string | undefined;
+	if (!sessionId || !transports[sessionId]) {
+		res.status(400).send('Invalid or missing session ID');
+		return;
+	}
+
+	console.log(`Received session termination request for session ${sessionId}`);
+
+	try {
+		const transport = transports[sessionId];
+		await transport.handleRequest(req, res);
+	} catch (error) {
+		console.error('Error handling session termination:', error);
+		if (!res.headersSent) {
+			res.status(500).send('Error processing session termination');
+		}
+	}
+};
+
 export async function handleCleanup() {
 	toolInterval?.close()
 	await server.close()
 }
+
+registerAppResource(
+	server,
+	resourceUri,
+	resourceUri,
+	{ mimeType: RESOURCE_MIME_TYPE } as McpUiAppResourceConfig,
+  async () => {
+    const html = await fs.readFile(
+      path.join(import.meta.dirname, "../rcs", "mcp-app.html"),
+      {encoding: "utf-8"},
+    );
+    return {
+      contents: [
+        { uri: resourceUri, mimeType: RESOURCE_MIME_TYPE, text: html },
+      ],
+    };
+  },
+)

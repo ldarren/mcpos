@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "NODE_ENV=development vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -15,7 +15,6 @@
     "@mantine/hooks": "^8.3.5",
     "@mantine/modals": "^8.3.5",
     "@mantine/notifications": "^8.3.5",
-    "@modelcontextprotocol/sdk": "1.10.1",
     "@tabler/icons-react": "^3.35.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

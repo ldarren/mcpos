@@ -1,3 +1,4 @@
+import { getToolUiResourceUri } from "@modelcontextprotocol/ext-apps/app-bridge";
 import { useState, useEffect } from 'react'
 import {
   Modal,
@@ -72,6 +73,16 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
       window.removeEventListener('mcp-notification', handleNotification as EventListener)
     }
   }, [server?.id])
+
+  useEffect(() => {
+    setOutput('')
+    if (server?.id && tool) {
+      const uiResourceUri = getToolUiResourceUri(tool)
+      if (uiResourceUri) {
+        actions.getUiResource(server.id, uiResourceUri).then(rcs => console.log('%%%%%%%%%%%%%%%', rcs))
+      }
+    }
+  }, [server?.id, tool?.name])
 
   const renderInputField = (propName: string, propSchema: any) => {
     const isRequired = tool?.inputSchema?.required?.includes(propName) || false

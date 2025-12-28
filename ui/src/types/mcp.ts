@@ -1,3 +1,4 @@
+import {type McpUiAppToolConfig} from '@modelcontextprotocol/ext-apps/server'
 export interface MCPServer {
   id: string
   name: string
@@ -10,6 +11,7 @@ export interface MCPTool {
   name: string
   description?: string
   inputSchema: any
+  _meta?: McpUiAppToolConfig['_meta']
 }
 
 export interface ToolParameter {

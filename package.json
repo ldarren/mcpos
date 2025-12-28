@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^0.2.2",
+    "@modelcontextprotocol/sdk": "^1.25.1"
+  }
+}

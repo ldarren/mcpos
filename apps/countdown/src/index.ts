@@ -1,7 +1,6 @@
 // REF: https://github.com/modelcontextprotocol/typescript-sdk/blob/main/src/examples/server/simpleStreamableHttp.ts#L469
 import express, {Request, Response} from 'express'
 import cors from 'cors'
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { handlePostRequest, handleGetRequest, handleCleanup } from './server.js'
 
 /*******************************/
@@ -13,7 +12,7 @@ const app = express()
 // Setup CORS middleware
 app.use(cors({
 	origin: '*',
-	allowedHeaders: ['Content-Type', 'Authorization', 'mcp-session-id'],
+	allowedHeaders: ['Content-Type', 'Authorization', 'mcp-session-id', 'mcp-protocol-version'],
 	exposedHeaders: ['mcp-session-id'],
 	methods: ['GET', 'POST', 'OPTIONS'],
 }))
