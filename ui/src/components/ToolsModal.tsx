@@ -1,3 +1,4 @@
+import { type Tool } from "@modelcontextprotocol/sdk/types.js"
 import { useState } from 'react'
 import {
   Modal,
@@ -12,7 +13,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconTool, IconInfoCircle } from '@tabler/icons-react'
-import type { MCPServer, MCPTool } from '../types/mcp'
+import type { MCPServer } from '../types/mcp'
 import { ToolWindow } from './ToolWindow'
 import { useMCP } from '../contexts/MCPContext'
 
@@ -24,7 +25,7 @@ interface ToolsModalProps {
 
 export function ToolsModal({ opened, onClose, server }: ToolsModalProps) {
   const { state } = useMCP()
-  const [selectedTool, setSelectedTool] = useState<MCPTool | null>(null)
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
   const [toolWindowOpened, { open: openToolWindow, close: closeToolWindow }] = useDisclosure(false)
 
   // Get tools from the current server state
@@ -33,7 +34,7 @@ export function ToolsModal({ opened, onClose, server }: ToolsModalProps) {
   const loading = currentServer?.status === 'connecting'
   const error = currentServer?.status === 'disconnected' ? 'Server not connected' : null
 
-  const handleToolSelect = (tool: MCPTool) => {
+  const handleToolSelect = (tool: Tool) => {
     setSelectedTool(tool)
     openToolWindow()
   }

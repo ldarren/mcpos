@@ -1,17 +1,11 @@
-import {type McpUiAppToolConfig} from '@modelcontextprotocol/ext-apps/server'
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+
 export interface MCPServer {
   id: string
   name: string
   domain: string
   status: 'connected' | 'disconnected' | 'connecting'
-  tools?: MCPTool[]
-}
-
-export interface MCPTool {
-  name: string
-  description?: string
-  inputSchema: any
-  _meta?: McpUiAppToolConfig['_meta']
+  tools?: Tool[]
 }
 
 export interface ToolParameter {

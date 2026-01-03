@@ -3,8 +3,14 @@ import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
 const INPUT = process.env.INPUT;
+const ACTIVE_ROUTE = process.env.VITE_ACTIVE_ROUTE;
+
 if (!INPUT) {
   throw new Error("INPUT environment variable is not set");
+}
+
+if (!ACTIVE_ROUTE) {
+  throw new Error("VITE_ACTIVE_ROUTE environment variable is not set");
 }
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -19,6 +25,9 @@ export default defineConfig({
     },
     dedupe: ["react", "react-dom"]
   },
+  define: {
+    __ACTIVE_ROUTE__: JSON.stringify(ACTIVE_ROUTE),
+  },
   build: {
     sourcemap: isDevelopment ? "inline" : undefined,
     cssMinify: !isDevelopment,
@@ -32,7 +41,6 @@ export default defineConfig({
         return false;
       }
     },
-    outDir: "dist",
-    emptyOutDir: false,
+    emptyOutDir: true,
   },
 });

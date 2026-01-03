@@ -6,7 +6,7 @@ import { McpServer, ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js"
 import { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY, McpUiAppResourceConfig } from "@modelcontextprotocol/ext-apps/server"
 import { CallToolResult, Notification, CallToolRequestSchema, ListToolsRequestSchema, LoggingMessageNotification, ToolListChangedNotification, JSONRPCNotification, JSONRPCErrorResponse, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import * as z from 'zod/v4'
+import { z } from 'zod'
 
 const SESSION_ID_HEADER_NAME = "mcp-session-id"
 const JSON_RPC = "2.0"
@@ -70,7 +70,7 @@ const multiGreetTool = {
 	}) as z.ZodObject<{ name: z.ZodString }>
 }
 
-const multiGreetCB: ToolCallback<typeof singleGreetTool.inputSchema> = async ({name}: any, extra): Promise<CallToolResult> => {
+const multiGreetCB: ToolCallback<typeof multiGreetTool.inputSchema> = async ({name}: any, extra): Promise<CallToolResult> => {
 	const sendNotification = extra.sendNotification
 	const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -103,7 +103,7 @@ const countdownTool = {
 	inputSchema: {
 		start: z.number().min(1).max(3600).describe("Starting number for countdown (1-3600 seconds)")
 	},
-	outputSchema: z.object({current: z.number()}),
+	outputSchema: {current: z.number()},
 	_meta: { [RESOURCE_URI_META_KEY]: resourceUri },
 }
 

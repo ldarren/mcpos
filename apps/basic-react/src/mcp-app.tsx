@@ -26,6 +26,7 @@ function extractTime(callToolResult: CallToolResult): string {
 
 
 function GetTimeApp() {
+  // @ts-ignore - temporarily commented out usage
   const [toolResult, setToolResult] = useState<CallToolResult | null>(null);
   const { app, error } = useApp({
     appInfo: IMPLEMENTATION,

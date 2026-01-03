@@ -1,6 +1,7 @@
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { createContext, useContext, useReducer, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import type { MCPServer, MCPTool } from '../types/mcp'
+import type { MCPServer } from '../types/mcp'
 import { mcpClient, UiResourceData } from '../services/mcpClient'
 
 interface MCPState {
@@ -14,7 +15,7 @@ type MCPAction =
   | { type: 'UPDATE_SERVER'; payload: { id: string; updates: Partial<MCPServer> } }
   | { type: 'REMOVE_SERVER'; payload: string }
   | { type: 'SET_SERVER_STATUS'; payload: { id: string; status: MCPServer['status'] } }
-  | { type: 'SET_SERVER_TOOLS'; payload: { id: string; tools: MCPTool[] } }
+  | { type: 'SET_SERVER_TOOLS'; payload: { id: string; tools: Tool[] } }
   | { type: 'ADD_NOTIFICATION'; payload: { serverId: string; message: any } }
   | { type: 'ADD_PROGRESS'; payload: { serverId: string; data: any } }
   | { type: 'CLEAR_NOTIFICATIONS'; payload?: string }

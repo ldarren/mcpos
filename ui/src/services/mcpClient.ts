@@ -1,8 +1,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import { LoggingMessageNotificationSchema, ProgressNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
-import { RESOURCE_MIME_TYPE, getToolUiResourceUri, type McpUiSandboxProxyReadyNotification, AppBridge, PostMessageTransport } from "@modelcontextprotocol/ext-apps/app-bridge";
-import type { MCPServer, MCPTool } from '../types/mcp'
+import { type Tool, LoggingMessageNotificationSchema, ProgressNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/app-bridge";
+import type { MCPServer } from '../types/mcp'
 
 export interface UiResourceData {
   html: string;
@@ -61,7 +61,7 @@ export class MCPClientService {
     }
   }
 
-  async listTools(serverId: string): Promise<MCPTool[]> {
+  async listTools(serverId: string): Promise<Tool[]> {
     const clientInfo = this.clients.get(serverId)
     if (!clientInfo) {
       throw new Error('Not connected to server')
@@ -127,7 +127,7 @@ export class MCPClientService {
 
     // Try both _meta (spec) and meta (Python SDK quirk)
     const contentMeta = (content as any)._meta || (content as any).meta;
-    const csp = contentMeta?.ui?.csp;
+    const csp = contentMeta?.ui?.csp; // Content Security Policy
 
     return { html, csp };
   }

@@ -9,12 +9,5 @@
   },
   "keywords": [],
   "author": "itsuki",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-      "@modelcontextprotocol/sdk": "^1.10.1"
-  }
+  "license": "ISC"
 }

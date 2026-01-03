@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark">
+    <!-- CSP is set by server HTTP header - no meta tag needed here
+         The inner iframe's CSP is dynamically injected based on resource metadata -->
+    <title>MCPOS Sandbox Proxy</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      iframe {
+        background-color: transparent;
+        border: 0px none transparent;
+        padding: 0px;
+        overflow: hidden;
+        flex-grow: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="/src/sandbox.ts"></script>
+  </body>
+</html>
