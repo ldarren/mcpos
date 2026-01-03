@@ -1,29 +1,29 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "allowJs": true,
-    "outDir": "./build",
-    "rootDir": "./src",
     "strict": true,
-    "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
+    "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleDetection": "force",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleDetection": "force",
+    "outDir": "./build",
+    "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "*.ts", "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

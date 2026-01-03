@@ -73,46 +73,46 @@ function App() {
             onOpenToolsModal={handleOpenToolsModal}
           />
         </Container>
-
-        {/* Add Server Modal */}
-        <Modal
-          opened={addModalOpened}
-          onClose={closeAddModal}
-          title="Add MCP Server"
-          centered
-          withinPortal
-        >
-          <form onSubmit={form.onSubmit(handleAddServer)}>
-            <Stack gap="md">
-              <TextInput
-                label="Server Name"
-                placeholder="e.g., Countdown Server"
-                {...form.getInputProps('name')}
-              />
-              <TextInput
-                label="Domain"
-                placeholder="e.g., localhost:6001"
-                {...form.getInputProps('domain')}
-              />
-              <Group justify="flex-end" gap="sm">
-                <Button variant="light" onClick={closeAddModal}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Add Server
-                </Button>
-              </Group>
-            </Stack>
-          </form>
-        </Modal>
-
-        {/* Tools Modal */}
-        <ToolsModal
-          opened={toolsModalOpened}
-          onClose={handleCloseToolsModal}
-          server={selectedServer}
-        />
       </AppShell.Main>
+
+      {/* Add Server Modal */}
+      <Modal
+        opened={addModalOpened}
+        onClose={closeAddModal}
+        title="Add MCP Server"
+        centered
+        withinPortal
+      >
+        <form onSubmit={form.onSubmit(handleAddServer)}>
+          <Stack gap="md">
+            <TextInput
+              label="Server Name"
+              placeholder="e.g., Countdown Server"
+              {...form.getInputProps('name')}
+            />
+            <TextInput
+              label="Domain"
+              placeholder="e.g., localhost:6001"
+              {...form.getInputProps('domain')}
+            />
+            <Group justify="flex-end" gap="sm">
+              <Button variant="light" onClick={closeAddModal}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Server
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+
+      {/* Tools Modal */}
+      <ToolsModal
+        opened={toolsModalOpened}
+        onClose={handleCloseToolsModal}
+        server={selectedServer}
+      />
 
     </AppShell>
   )

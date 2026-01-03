@@ -1,7 +1,16 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import { LoggingMessageNotificationSchema, ProgressNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
-import type { MCPServer, MCPTool } from '../types/mcp'
+import { type Tool, LoggingMessageNotificationSchema, ProgressNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/app-bridge";
+import type { MCPServer } from '../types/mcp'
+
+export interface UiResourceData {
+  html: string;
+  csp?: {
+    connectDomains?: string[];
+    resourceDomains?: string[];
+  };
+}
 
 export class MCPClientService {
   private clients: Map<string, { client: Client; transport: StreamableHTTPClientTransport }> = new Map()
@@ -52,7 +61,7 @@ export class MCPClientService {
     }
   }
 
-  async listTools(serverId: string): Promise<MCPTool[]> {
+  async listTools(serverId: string): Promise<Tool[]> {
     const clientInfo = this.clients.get(serverId)
     if (!clientInfo) {
       throw new Error('Not connected to server')
@@ -84,6 +93,43 @@ export class MCPClientService {
       console.error('Failed to call tool:', error)
       throw error
     }
+  }
+
+  async getUiResource(serverId: string, uri: string): Promise<UiResourceData> {
+    console.info("Reading UI resource:", serverId, uri);
+    const clientInfo = this.clients.get(serverId)
+    if (!clientInfo) {
+      throw new Error('Not connected to server')
+    }
+    const resource = await clientInfo.client.readResource({ uri });
+
+    if (!resource) {
+      throw new Error(`Resource not found: ${uri}`);
+    }
+
+    if (resource.contents.length !== 1) {
+      throw new Error(`Unexpected contents count: ${resource.contents.length}`);
+    }
+
+    const content = resource.contents[0];
+
+    // Per the MCP App specification, "text/html;profile=mcp-app" signals this
+    // resource is indeed for an MCP App UI.
+    if (content.mimeType !== RESOURCE_MIME_TYPE) {
+      throw new Error(`Unsupported MIME type: ${content.mimeType}`);
+    }
+
+    const html = "blob" in content ? atob(content.blob) : content.text;
+
+    // Extract CSP metadata from resource content._meta.ui.csp (or content.meta for Python SDK)
+    console.log("Resource content keys:", Object.keys(content));
+    console.log("Resource content._meta:", (content as any)._meta);
+
+    // Try both _meta (spec) and meta (Python SDK quirk)
+    const contentMeta = (content as any)._meta || (content as any).meta;
+    const csp = contentMeta?.ui?.csp; // Content Security Policy
+
+    return { html, csp };
   }
 
   isConnected(serverId: string): boolean {

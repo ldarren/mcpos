@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { getToolUiResourceUri } from "@modelcontextprotocol/ext-apps/app-bridge";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { useState, useEffect, useRef } from 'react'
 import {
   Modal,
   Stack,
@@ -21,20 +23,68 @@ import {
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react'
-import type { MCPServer, MCPTool, ToolExecution } from '../types/mcp'
+import type { MCPServer, ToolExecution } from '../types/mcp'
 import { useMCP } from '../contexts/MCPContext'
+import {
+  loadSandboxProxy,
+  initializeApp,
+  newAppBridge,
+  hasAppHtml,
+  log,
+  type ToolCallInfo
+} from '../utils/sandboxUtils'
+import { mcpClient } from '../services/mcpClient'
 
 interface ToolWindowProps {
   opened: boolean
   onClose: () => void
-  tool: MCPTool | null
+  tool: Tool | null
   server: MCPServer | null
+}
+
+// AppIFramePanel component for UI tools
+function AppIFramePanel({ toolCallInfo }: { toolCallInfo: Required<ToolCallInfo> }) {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const appBridgeRef = useRef<ReturnType<typeof newAppBridge> | null>(null)
+
+  useEffect(() => {
+    const iframe = iframeRef.current!
+    loadSandboxProxy(iframe).then((firstTime) => {
+      // Guard against React Strict Mode's double invocation
+      if (firstTime) {
+        const appBridge = newAppBridge(toolCallInfo.client, iframe)
+        appBridgeRef.current = appBridge
+        initializeApp(iframe, appBridge, toolCallInfo)
+      }
+    })
+  }, [toolCallInfo])
+
+  return (
+    <div style={{
+      width: '100%',
+      minHeight: '400px',
+      border: '1px solid var(--mantine-color-default-border)',
+      borderRadius: 'var(--mantine-radius-md)'
+    }}>
+      <iframe
+        ref={iframeRef}
+        style={{
+          width: '100%',
+          height: '400px',
+          border: 'none',
+          borderRadius: 'var(--mantine-radius-md)'
+        }}
+      />
+    </div>
+  )
 }
 
 export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
   const { actions } = useMCP()
   const [execution, setExecution] = useState<ToolExecution | null>(null)
   const [output, setOutput] = useState<string>('')
+  const [toolCallInfo, setToolCallInfo] = useState<ToolCallInfo | null>(null)
+  const [hasUiResource, setHasUiResource] = useState<boolean>(false)
 
   const form = useForm({
     initialValues: {},
@@ -72,6 +122,23 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
       window.removeEventListener('mcp-notification', handleNotification as EventListener)
     }
   }, [server?.id])
+
+  useEffect(() => {
+    setOutput('')
+    setToolCallInfo(null)
+    setHasUiResource(false)
+
+    if (server?.id && tool) {
+      const uiResourceUri = getToolUiResourceUri(tool)
+      setHasUiResource(!!uiResourceUri)
+
+      if (uiResourceUri) {
+        log.info("Tool has UI resource:", uiResourceUri)
+      } else {
+        log.info("Tool has no UI resource, will use traditional output")
+      }
+    }
+  }, [server?.id, tool?.name])
 
   const renderInputField = (propName: string, propSchema: any) => {
     const isRequired = tool?.inputSchema?.required?.includes(propName) || false
@@ -172,14 +239,44 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
 
     setExecution(newExecution)
     setOutput('')
+    setToolCallInfo(null)
 
     try {
-      // Call the real MCP server
-      const result = await actions.callTool(server.id, tool.name, values)
+      // Get the client for this server
+      const clientInfo = mcpClient['clients']?.get(server.id)
+      if (!clientInfo) {
+        throw new Error('Not connected to server')
+      }
 
-      // Set initial result
-      if (result?.content?.[0]?.text) {
-        setOutput(result.content[0].text + '\n')
+      // Create promise for the tool call result
+      const resultPromise = actions.callTool(server.id, tool.name, values)
+
+      // Check if tool has UI resource
+      const uiResourceUri = getToolUiResourceUri(tool)
+      let appResourcePromise: Promise<any> | undefined
+
+      if (hasUiResource && uiResourceUri) {
+        // Create tool call info for UI tools
+        appResourcePromise = actions.getUiResource(server.id, uiResourceUri)
+
+        const newToolCallInfo: ToolCallInfo = {
+          serverId: server.id,
+          toolName: tool.name,
+          client: clientInfo.client,
+          input: values,
+          resultPromise,
+          appResourcePromise
+        }
+
+        setToolCallInfo(newToolCallInfo)
+        log.info("Created tool call info for UI tool:", tool.name)
+      } else {
+        // Handle regular tools (non-UI)
+        const result = await resultPromise
+
+        if (result?.content?.[0]?.text) {
+          setOutput(result.content[0].text + '\n')
+        }
       }
 
       setExecution(prev => prev ? { ...prev, status: 'completed' } : null)
@@ -191,6 +288,7 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
     } catch (error) {
       setExecution(prev => prev ? { ...prev, status: 'error' } : null)
       setOutput('Error executing tool: ' + (error as Error).message)
+      setToolCallInfo(null)
       notifications.show({
         title: 'Execution Error',
         message: `Failed to execute ${tool.name}`,
@@ -201,6 +299,7 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
 
   const handleStop = () => {
     setExecution(prev => prev ? { ...prev, status: 'completed' } : null)
+    setToolCallInfo(null)
     notifications.show({
       title: 'Tool Stopped',
       message: 'Execution was stopped',
@@ -275,7 +374,9 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
             <Group justify="space-between">
               <Text fw={500}>Output</Text>
               <Group gap="xs">
-                <Badge size="sm" variant="light">Output</Badge>
+                <Badge size="sm" variant="light">
+                  {hasUiResource ? 'Interactive UI' : 'Output'}
+                </Badge>
                 {execution?.status === 'running' && (
                   <Group gap={4}>
                     <Loader size="xs" />
@@ -285,15 +386,24 @@ export function ToolWindow({ opened, onClose, tool, server }: ToolWindowProps) {
               </Group>
             </Group>
 
-            <ScrollArea h={200}>
-              {output ? (
-                <Code block>{output}</Code>
-              ) : (
-                <Text size="sm" c="dimmed" ta="center" py="xl">
-                  No output yet. Execute the tool to see results.
-                </Text>
-              )}
-            </ScrollArea>
+            {/* Show AppIFramePanel for UI tools, traditional output for regular tools */}
+            {toolCallInfo && hasAppHtml(toolCallInfo) ? (
+              <AppIFramePanel toolCallInfo={toolCallInfo} />
+            ) : hasUiResource ? (
+              <Text size="sm" c="dimmed" ta="center" py="xl">
+                Execute the tool to load the interactive UI.
+              </Text>
+            ) : (
+              <ScrollArea h={200}>
+                {output ? (
+                  <Code block>{output}</Code>
+                ) : (
+                  <Text size="sm" c="dimmed" ta="center" py="xl">
+                    No output yet. Execute the tool to see results.
+                  </Text>
+                )}
+              </ScrollArea>
+            )}
           </Stack>
         </Paper>
       </Stack>

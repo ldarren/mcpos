@@ -1,0 +1,59 @@
+{
+  "name": "basic-server-react",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && cross-env INPUT=mcp-app.html vite build",
+    "watch": "cross-env INPUT=mcp-app.html vite build --watch",
+    "serve": "tsx server.ts",
+    "start": "cross-env NODE_ENV=development npm run build && npm run serve",
+    "dev": "cross-env NODE_ENV=development concurrently 'npm run watch' 'npm run serve'"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.25.12",
+    "express": "^5.1.0",
+    "husky": "^9.1.7",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.6.2",
+    "ts-to-zod": "^5.1.0",
+    "typedoc": "^0.28.14",
+    "vite-plugin-singlefile": "^2.3.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/app.d.ts",
+      "default": "./dist/src/app.js"
+    },
+    "./react": {
+      "types": "./dist/src/react/index.d.ts",
+      "default": "./dist/src/react/index.js"
+    },
+    "./app-bridge": {
+      "types": "./dist/src/app-bridge.d.ts",
+      "default": "./dist/src/app-bridge.js"
+    },
+    "./server": {
+      "types": "./dist/src/server/index.d.ts",
+      "default": "./dist/src/server/index.js"
+    },
+    "./schema.json": "./dist/src/generated/schema.json"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.53.3",
+    "@rollup/rollup-darwin-x64": "^4.53.3",
+    "@rollup/rollup-linux-arm64-gnu": "^4.53.3",
+    "@rollup/rollup-linux-x64-gnu": "^4.53.3",
+    "@rollup/rollup-win32-x64-msvc": "^4.53.3"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "doc-translator-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:all": "npm run build:upload && npm run build:history && npm run build:glossary",
+    "build:upload": "cross-env VITE_ACTIVE_ROUTE=upload INPUT=upload.html vite build --outDir dist/upload",
+    "build:history": "cross-env VITE_ACTIVE_ROUTE=history INPUT=history.html vite build --outDir dist/history",
+    "build:glossary": "cross-env VITE_ACTIVE_ROUTE=glossary INPUT=glossary.html vite build --outDir dist/glossary",
+    "watch:upload": "cross-env VITE_ACTIVE_ROUTE=upload INPUT=upload.html vite build --watch --outDir dist/upload",
+    "watch:history": "cross-env VITE_ACTIVE_ROUTE=history INPUT=history.html vite build --watch --outDir dist/history",
+    "watch:glossary": "cross-env VITE_ACTIVE_ROUTE=glossary INPUT=glossary.html vite build --watch --outDir dist/glossary",
+    "serve": "tsx server.ts",
+    "start": "cross-env NODE_ENV=development npm run build:all && npm run serve",
+    "dev": "cross-env NODE_ENV=development concurrently 'npm run watch:upload' 'npm run watch:history' 'npm run watch:glossary' 'npm run serve'"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.25.12",
+    "express": "^5.1.0",
+    "vite-plugin-singlefile": "^2.3.0"
+  },
+  "exports": {
+    "./upload": {
+      "types": "./dist/upload/types.d.ts",
+      "default": "./dist/upload/app.js"
+    },
+    "./history": {
+      "types": "./dist/history/types.d.ts",
+      "default": "./dist/history/app.js"
+    },
+    "./glossary": {
+      "types": "./dist/glossary/types.d.ts",
+      "default": "./dist/glossary/app.js"
+    }
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.53.3",
+    "@rollup/rollup-darwin-x64": "^4.53.3",
+    "@rollup/rollup-linux-arm64-gnu": "^4.53.3",
+    "@rollup/rollup-linux-x64-gnu": "^4.53.3",
+    "@rollup/rollup-win32-x64-msvc": "^4.53.3"
+  }
+}
