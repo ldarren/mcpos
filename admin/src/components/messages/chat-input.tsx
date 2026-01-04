@@ -39,23 +39,14 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
       </Button>
 
       {/* Message Input Container */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative h-[40px]">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type a message..."
           disabled={disabled}
-          className="w-full min-h-[40px] max-h-32 px-4 py-2 pr-12 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          rows={1}
-          style={{
-            height: "auto",
-          }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement
-            target.style.height = "auto"
-            target.style.height = Math.min(target.scrollHeight, 128) + "px"
-          }}
+          className="w-full h-full px-4 py-2 pr-12 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         />
 
         {/* Emoji Button */}

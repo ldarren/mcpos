@@ -9,7 +9,7 @@ export function MessagesPage() {
   const selectedChat = selectedChatId ? mockChats.find(chat => chat.id === selectedChatId) : null
 
   return (
-    <div className="flex h-full -m-6">
+    <div className="flex h-[calc(100%+3rem)] -m-6">
       {/* Left Pane - Chat List */}
       <div className="w-80 border-r bg-background">
         <ChatList
@@ -20,7 +20,7 @@ export function MessagesPage() {
       </div>
 
       {/* Right Pane - Chat Conversation */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {selectedChat ? (
           <ChatConversation chat={selectedChat} />
         ) : (
