@@ -45,7 +45,7 @@ const SidebarContext = React.createContext<{
   setIsExpanded: (expanded: boolean) => void
 }>({
   isExpanded: false,
-  setIsExpanded: () => {}
+  setIsExpanded: () => { }
 })
 
 export function useSidebar() {
@@ -62,8 +62,8 @@ function SidebarContent({ variant, currentPath = "/", onItemClick, showToggle = 
   const { isExpanded, setIsExpanded } = useSidebar()
   return (
     <nav className="flex flex-col h-full">
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
+      <div className="h-16 px-4 border-b flex items-center">
+        <div className="flex items-center justify-between w-full">
           <h2 className={cn(
             "font-bold text-xl",
             variant === "minimal" && "sr-only"
@@ -185,39 +185,39 @@ export function Sidebar({ currentPath, className }: SidebarProps) {
   return (
     <SidebarContext.Provider value={{ isExpanded, setIsExpanded }}>
       <TooltipProvider>
-      {/* Mobile burger menu - visible only on small screens */}
-      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="sm:hidden fixed top-4 left-4 z-50"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <SidebarContent
-            variant="full"
-            currentPath={currentPath}
-            onItemClick={() => setIsMobileOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
+        {/* Mobile burger menu - visible only on small screens */}
+        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="sm:hidden fixed top-4 left-4 z-50"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0">
+            <SidebarContent
+              variant="full"
+              currentPath={currentPath}
+              onItemClick={() => setIsMobileOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
 
-      {/* Desktop sidebar - hidden on mobile, expandable on medium+ screens */}
-      <aside className={cn(
-        "hidden sm:flex flex-col border-r bg-background transition-all duration-300",
-        isExpanded ? "w-64" : "w-16", // Dynamic width based on expanded state
-        className
-      )}>
-        <SidebarContent
-          variant={getDesktopVariant()}
-          currentPath={currentPath}
-          showToggle={true}
-        />
-      </aside>
+        {/* Desktop sidebar - hidden on mobile, expandable on medium+ screens */}
+        <aside className={cn(
+          "hidden sm:flex flex-col border-r bg-background transition-all duration-300",
+          isExpanded ? "w-64" : "w-16", // Dynamic width based on expanded state
+          className
+        )}>
+          <SidebarContent
+            variant={getDesktopVariant()}
+            currentPath={currentPath}
+            showToggle={true}
+          />
+        </aside>
       </TooltipProvider>
     </SidebarContext.Provider>
   )
